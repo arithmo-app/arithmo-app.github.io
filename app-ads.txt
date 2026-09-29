@@ -1,0 +1,15 @@
+# app-ads.txt — AdMob authorised sellers for Arithmo.
+#
+# PLACEHOLDER. Replace the line below with the exact one AdMob gives you
+# under Apps → Arithmo → app-ads.txt. It looks like this, with your own
+# publisher id in place of the zeros:
+#
+#   google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+#
+# Until the real line is here, this file authorises nobody, which is the
+# safe state: an empty or placeholder app-ads.txt cannot authorise a seller
+# who is not us.
+#
+# It only takes effect once https://arithmo-app.github.io is set as the
+# developer website on the Play listing — that is how a crawler gets from
+# the app to this file. See README.md.

@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arithmo — fast mental maths arcade</title>
+<meta name="description" content="One right answer on screen. Find it before the ring runs out. A mental-arithmetic game for Android and iOS.">
+<link rel="canonical" href="https://arithmo-app.github.io/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Arithmo">
+<meta property="og:title" content="Arithmo — fast mental maths arcade">
+<meta property="og:description" content="One right answer on screen. Find it before the ring runs out.">
+<meta property="og:url" content="https://arithmo-app.github.io/">
+<meta property="og:image" content="https://arithmo-app.github.io/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Arithmo: the counter 12, a blue ×4 disc, and 48 waiting in a dashed slot.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Arithmo — fast mental maths arcade">
+<meta name="twitter:description" content="One right answer on screen. Find it before the ring runs out.">
+<meta name="twitter:image" content="https://arithmo-app.github.io/img/og.png">
+
+<link rel="icon" href="/img/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/img/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<meta name="theme-color" content="#F3F1EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#07080C" media="(prefers-color-scheme: dark)">
+
+<style>
+/* Type: the two faces go in /fonts/ as woff2 (see fonts/README.md). Until
+   they are there, the stack falls through to the platform's own sans — the
+   page is readable either way, and no request ever leaves this origin. */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/fonts/bricolage-grotesque-800.woff2') format('woff2');
+  font-weight: 800; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Inter Tight';
+  src: url('/fonts/inter-tight-400.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Inter Tight';
+  src: url('/fonts/inter-tight-600.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* SPEC §11 tokens, as the app actually ships them. */
+:root {
+  --paper: #F3F1EA;
+  --paper2: #FFFFFF;
+  --ink: #1A1B2E;
+  --muted: #6B6F7B;
+  --hair: rgba(26,27,46,.20);
+  --grid: rgba(26,27,46,.075);
+  --shadow: rgba(26,27,46,.16);
+  --add: #16A34A;
+  --sub: #DC2626;
+  --mul: #2563EB;
+  --div: #9333EA;
+  /* White numerals on the flat green are 3.3:1 — under AA. In the app the
+     figure sits on the stone's shaded middle, which buys the contrast back;
+     a flat web disc has no shading to borrow from, so the green is pressed
+     down until white passes (4.6:1). The other three already do. */
+  --add-disc: #12873D;
+  --disc-text: #FFFFFF;
+  --head: 'Bricolage Grotesque', ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+  --body: 'Inter Tight', ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #07080C;
+    --paper2: #0E1016;
+    --ink: #F2EFE6;
+    --muted: #8A8F9C;
+    --hair: rgba(200,210,225,.16);
+    --grid: rgba(200,210,225,.06);
+    --shadow: rgba(0,0,0,0);
+    --add: #1B5B3A;
+    --sub: #661822;
+    --mul: #223A7A;
+    --div: #4A2A70;
+    --add-disc: #1B5B3A;
+    --disc-text: #F7F4EC;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink);
+  background-color: var(--paper);
+  /* The squared notebook, 28px, exactly as the board paints it. */
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+main, header, footer { max-width: 44rem; margin: 0 auto; padding: 0 20px; }
+h1, h2, h3 { font-family: var(--head); font-weight: 800; line-height: 1.12; letter-spacing: -0.02em; }
+h1 { font-size: clamp(2.6rem, 12vw, 4.2rem); margin: 0; }
+h2 { font-size: clamp(1.5rem, 6vw, 2rem); margin: 0 0 .6rem; }
+h3 { font-size: 1.05rem; margin: 0 0 .25rem; }
+p { margin: 0 0 1rem; max-width: 34rem; }
+a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible {
+  outline: 3px solid var(--mul);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.muted { color: var(--muted); }
+section { padding: 3.5rem 0; border-top: 1px solid var(--hair); }
+
+/* ---- header and hero ---- */
+header { padding-top: 3rem; padding-bottom: 1rem; }
+.wordmark { display: flex; align-items: center; gap: 14px; }
+.wordmark img { width: 56px; height: 56px; display: block; }
+.lede { font-size: 1.22rem; color: var(--muted); margin-top: .9rem; }
+
+/* ---- the move: what one round of the game is ---- */
+.move {
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(10px, 4vw, 22px);
+  margin: 2.6rem 0 1.4rem;
+  flex-wrap: nowrap;
+}
+.plate, .slot {
+  font-family: var(--head); font-weight: 800;
+  font-size: clamp(1.5rem, 7vw, 2.3rem);
+  min-width: clamp(76px, 22vw, 116px);
+  padding: .5rem .7rem;
+  text-align: center;
+  border-radius: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.plate {
+  background: var(--ink); color: var(--paper);
+  box-shadow: 0 6px 0 var(--shadow);
+}
+.slot { border: 3px dashed var(--hair); color: var(--ink); }
+.disc {
+  /* A row, not a column: `place-items` on a grid put the operator on its own
+     line above the number. */
+  display: flex; align-items: center; justify-content: center;
+  width: clamp(62px, 18vw, 92px); height: clamp(62px, 18vw, 92px);
+  border-radius: 50%;
+  color: var(--disc-text);
+  font-family: var(--head); font-weight: 800;
+  /* 1.2rem bold is the floor: at 19.2px bold this counts as large text,
+     where 3:1 is the bar rather than 4.5:1. */
+  font-size: clamp(1.2rem, 5vw, 1.6rem);
+  font-variant-numeric: tabular-nums;
+  /* Flat and matte, with the printed offset shadow — no gloss, no gradient. */
+  box-shadow: 0 6px 0 var(--shadow);
+}
+.disc .op { font-size: .62em; opacity: .85; margin-right: .08em; }
+.disc.add { background: var(--add-disc); }
+.disc.sub { background: var(--sub); }
+.disc.mul { background: var(--mul); }
+.disc.div { background: var(--div); }
+.disc.big { width: clamp(72px, 21vw, 104px); height: clamp(72px, 21vw, 104px); }
+.arrow { color: var(--muted); font-size: 1.4rem; }
+
+/* The demo cycles three real rounds. One is visible at a time; the others
+   are hidden from assistive tech as well as from the eye. */
+.demo { position: relative; }
+.demo .move { animation: cycle 12s infinite; }
+.demo .move:nth-of-type(2) { animation-delay: -8s; }
+.demo .move:nth-of-type(3) { animation-delay: -4s; }
+.demo .move:not(:first-of-type) { position: absolute; inset: 0; }
+@keyframes cycle {
+  0%, 27% { opacity: 1; }
+  33%, 94% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo .move { animation: none; }
+  .demo .move:not(:first-of-type) { display: none; }
+}
+
+/* ---- how it works ---- */
+.steps { display: grid; gap: 1.6rem; margin-top: 1.6rem; }
+.step { display: flex; gap: 1rem; align-items: flex-start; }
+.step .art { flex: 0 0 auto; }
+.ring {
+  position: relative; width: 92px; height: 92px; border-radius: 50%;
+  border: 3px solid var(--hair);
+}
+.ring .disc { position: absolute; width: 30px; height: 30px; font-size: .74rem; box-shadow: 0 3px 0 var(--shadow); }
+.ring .disc.big { width: 38px; height: 38px; }
+.ring .t { top: -15px; left: 31px; }
+.ring .r { top: 27px; right: -19px; }
+.ring .b { bottom: -15px; left: 27px; }
+.ring .l { top: 31px; left: -15px; }
+.timer { transform: rotate(-90deg); }
+.timer circle { fill: none; stroke-width: 6; }
+.timer .track { stroke: var(--hair); }
+.timer .live { stroke: var(--ink); stroke-linecap: round; stroke-dasharray: 226; stroke-dashoffset: 80; }
+
+/* ---- modes, full version, download ---- */
+.modes { display: grid; gap: 1rem; margin-top: 1.4rem; }
+.mode {
+  background: var(--paper2); border: 1px solid var(--hair); border-radius: 16px;
+  padding: 1rem 1.1rem; box-shadow: 0 4px 0 var(--shadow);
+}
+.mode h3 { display: flex; align-items: center; gap: .55rem; }
+.dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+.price { font-family: var(--head); font-weight: 800; font-size: 1.6rem; }
+.shots { display: flex; gap: 12px; overflow-x: auto; padding-bottom: .5rem; margin-top: 1.4rem; }
+.shots img { width: 210px; height: auto; border-radius: 14px; border: 1px solid var(--hair); }
+.badge {
+  display: inline-block; padding: .85rem 1.4rem; border-radius: 12px;
+  background: var(--ink); color: var(--paper); text-decoration: none;
+  font-family: var(--head); font-weight: 800;
+}
+footer { padding: 2.5rem 20px 3.5rem; border-top: 1px solid var(--hair); color: var(--muted); font-size: .95rem; }
+footer a { color: var(--muted); }
+</style>
+</head>
+
+<body>
+<header>
+  <div class="wordmark">
+    <!-- The mark's ring is `ink`: navy on paper, bone on black. One
+         rendering cannot serve both grounds — on the wrong plate the ring
+         disappears into it. -->
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="/img/mark-dark.png">
+      <img src="/img/mark.png" width="56" height="56" alt="">
+    </picture>
+    <h1>Arithmo</h1>
+  </div>
+  <p class="lede">One right answer. Seconds to find it.</p>
+
+  <div class="demo" aria-label="One round of Arithmo: 12, times 4, gives 48">
+    <div class="move">
+      <span class="plate">12</span>
+      <span class="arrow" aria-hidden="true">→</span>
+      <span class="disc mul big"><span class="op" aria-hidden="true">×</span>4</span>
+      <span class="arrow" aria-hidden="true">→</span>
+      <span class="slot">48</span>
+    </div>
+    <div class="move" aria-hidden="true">
+      <span class="plate">31</span>
+      <span class="arrow">→</span>
+      <span class="disc add"><span class="op">+</span>9</span>
+      <span class="arrow">→</span>
+      <span class="slot">40</span>
+    </div>
+    <div class="move" aria-hidden="true">
+      <span class="plate">72</span>
+      <span class="arrow">→</span>
+      <span class="disc div big"><span class="op">÷</span>8</span>
+      <span class="arrow">→</span>
+      <span class="slot">9</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section aria-labelledby="how">
+    <h2 id="how">How it works</h2>
+    <p>A counter sits in the middle and the game names a target. Exactly one disc
+      on the ring gets you there.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="art" aria-hidden="true">
+          <div class="move" style="margin:0; gap:8px">
+            <span class="plate" style="font-size:1.1rem; min-width:56px; padding:.35rem .5rem">12</span>
+            <span class="slot" style="font-size:1.1rem; min-width:56px; padding:.35rem .5rem">48</span>
+          </div>
+        </div>
+        <div>
+          <h3>What you have, what you want</h3>
+          <p class="muted">The solid number is your counter. The dashed one is where
+            the round ends.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="art" aria-hidden="true">
+          <div class="ring">
+            <span class="disc add t"><span class="op">+</span>7</span>
+            <span class="disc mul big r"><span class="op">×</span>3</span>
+            <span class="disc div big b"><span class="op">÷</span>2</span>
+            <span class="disc sub l"><span class="op">−</span>4</span>
+          </div>
+        </div>
+        <div>
+          <h3>Add, subtract, multiply, divide</h3>
+          <p class="muted">Each disc carries its number; its colour carries the
+            operation. Multiply and divide are physically larger, so you find them
+            without reading.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="art" aria-hidden="true">
+          <svg class="timer" width="92" height="92" viewBox="0 0 92 92" role="presentation">
+            <circle class="track" cx="46" cy="46" r="36"></circle>
+            <circle class="live" cx="46" cy="46" r="36"></circle>
+          </svg>
+        </div>
+        <div>
+          <h3>The ring is the clock</h3>
+          <p class="muted">It drains while you think, and every right answer buys
+            some of it back. A good streak is what keeps a run alive.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="shots">
+      <img src="/img/shot-core.png" width="210" height="373"
+           alt="A round in progress: the counter 2, the target 1, and four discs around the ring.">
+      <img src="/img/shot-operations.png" width="210" height="373"
+           alt="Level five: all four operations on the ring, with the multiply and divide discs larger.">
+      <img src="/img/shot-progress.png" width="210" height="373"
+           alt="The progress screen, showing answer times and accuracy for each operation.">
+    </div>
+  </section>
+
+  <section aria-labelledby="modes">
+    <h2 id="modes">Three ways to play</h2>
+    <div class="modes">
+      <div class="mode">
+        <h3><span class="dot" style="background:var(--sub)"></span>Arcade</h3>
+        <p class="muted">The clock is running. Chase your best.</p>
+      </div>
+      <div class="mode">
+        <h3><span class="dot" style="background:var(--sub)"></span>Extreme</h3>
+        <p class="muted">Seven more levels, starting where Arcade ends.</p>
+      </div>
+      <div class="mode">
+        <h3><span class="dot" style="background:var(--add)"></span>Practice</h3>
+        <p class="muted">No clock, no score. Just practice.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="full">
+    <h2 id="full">The full version</h2>
+    <p class="price">€2.99</p>
+    <p>Unlimited Practice, progress tracking, and no ads. One purchase, no
+      subscription.</p>
+    <p class="muted">Progress shows you your own measured times: which operations
+      you answer quickly, and which ones you do not.</p>
+  </section>
+
+  <section aria-labelledby="get">
+    <h2 id="get">Get Arithmo</h2>
+    <p class="muted">Android first. The listing goes live with the first release.</p>
+    <!-- PLACEHOLDER: replace with the official Google Play badge artwork and the
+         real listing URL once the app is published. Google requires its own
+         badge image; this is deliberately not an imitation of it. -->
+    <p><a class="badge" href="#" aria-disabled="true">Google Play — coming soon</a></p>
+  </section>
+</main>
+
+<footer>
+  <p><a href="/privacy/">Privacy policy</a> ·
+     <a href="mailto:anidote.app@gmail.com">anidote.app@gmail.com</a></p>
+  <p>Arithmo is made by Anidote. This site collects nothing: no analytics, no
+     cookies, no third-party requests.</p>
+</footer>
+</body>
+</html>

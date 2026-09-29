@@ -1,0 +1,5 @@
+# Nothing is built here. The only things that should never be committed are
+# editor and OS droppings.
+.DS_Store
+Thumbs.db
+__*.html

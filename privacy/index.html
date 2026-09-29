@@ -118,7 +118,7 @@ hr { border: 0; border-top: 1px solid var(--hair); margin: 2.4rem 0; }
 
 <h2>What third parties process</h2>
 
-<p>Arithmo uses four Google or Google-related services. Each one is operated by its provider, who acts as its own controller or processor for the data concerned.</p>
+<p>Arithmo uses three Google or Google-related services. Each one is operated by its provider, who acts as its own controller or processor for the data concerned.</p>
 
 <p class="third"><strong>Google AdMob</strong> — serves ads in the free version. Depending on your consent choice, it may process your device's advertising identifier, IP address, and general device and ad-interaction information. If you consent to personalised ads, this data may be used to select ads relevant to you. If you refuse, you will still see ads, but non-personalised ones, based only on general context.<br>
 Google's privacy policy: <a href="https://policies.google.com/privacy">https://policies.google.com/privacy</a></p>
@@ -128,7 +128,9 @@ Google's privacy policy: <a href="https://policies.google.com/privacy">https://p
 
 <p class="third"><strong>Firebase Crashlytics</strong> — records technical information when the app crashes: the error, the device model, the operating system version and an anonymous installation identifier. This is used solely to find and fix bugs.</p>
 
-<p class="third"><strong>Firebase Analytics and Remote Config</strong> — Analytics records anonymous usage events such as starting a game or opening the store, used only in aggregate to understand how the game is played. Remote Config downloads configuration values to the app and sends no personal data.</p>
+<p class="third"><strong>Firebase Remote Config</strong> — downloads configuration values to the app, such as how long the practice allowance lasts. It sends no personal data. The request carries the same anonymous installation identifier Crashlytics uses.</p>
+
+<p>Arithmo does <strong>not</strong> use Firebase Analytics, or any other analytics or usage-tracking service. No record of what you tap, which modes you open or how often you play is sent anywhere.</p>
 
 <p>Purchases themselves are handled entirely by Google Play. We never see or store your payment information.</p>
 

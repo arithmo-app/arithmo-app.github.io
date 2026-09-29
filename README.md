@@ -65,12 +65,18 @@ them against each other. If an SDK is added or removed from the app, this
 page and that form are both wrong until both are updated — an inaccurate
 policy is worse than a thin one.
 
-Right now the policy describes four third parties: AdMob, RevenueCat,
-Firebase Crashlytics, and Firebase Analytics + Remote Config. **Three of
-those are not in the app yet** (see `AUDIT.md` in the app repo: B1, B5, M4).
-Over-declaring is the safer direction, but the two documents must agree on
-the day of submission, so check the shipped build against this list before
-you fill the Data Safety form.
+Right now the policy describes three third parties: AdMob, RevenueCat,
+Firebase Crashlytics and Firebase Remote Config. **One of those is not in the
+app yet** — RevenueCat, blocked on the Play product (`AUDIT.md` B1 in the app
+repo). Over-declaring is the safer direction, but the two documents must
+agree on the day of submission, so check the shipped build against this list
+before you fill the Data Safety form.
+
+**Declare from the binary, not from the prose.** Firebase Analytics was
+described here and on the page while it was never a dependency; it has been
+removed from both, and the page now says plainly that no analytics service is
+used. If one is ever added, this file, the page and `docs/DATA_SAFETY.md` in
+the app repo change in the same commit as the line in `pubspec.yaml`.
 
 To edit the policy: it is plain HTML in `privacy/index.html`, one `<h2>` per
 section, with the text matching the source `privacy.md` line for line. Change
